@@ -1,0 +1,15 @@
+# 总结几种 socket 粘包的解包方式：fix length/delimiter based/length field based frame decoder。尝试举例其应用。
+
+1. fix length ：固定长度 客户端每次都发送固定长度的内容，服务端每次都按固定长度解析内容
+
+2. delimiter based： 使用特殊的分隔符  穿插在每次发送的内容，如C语言字符串以 '\0' 结尾  服务端通过解析特殊分隔符拆分请求
+
+3. length field based frame decoder： 传递本次请求内容的长度， 比如 package length = head length + body length   如goim框架
+
+goim 协议结构
+    4bytes PacketLen 包长度，在数据流传输过程中，先写入整个包的长度，方便整个包的数据读取。
+    2bytes HeaderLen 头长度，在处理数据时，会先解析头部，可以知道具体业务操作。
+    2bytes Version 协议版本号，主要用于上行和下行数据包按版本号进行解析。
+    4bytes Operation 业务操作码，可以按操作码进行分发数据包到具体业务当中。
+    4bytes Sequence 序列号，数据包的唯一标记，可以做具体业务处理，或者数据包去重。
+    PacketLen-HeaderLen Body 实际业务数据，在业务层中会进行数据解码和编码。
